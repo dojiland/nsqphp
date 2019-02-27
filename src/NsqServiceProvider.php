@@ -43,15 +43,9 @@ class NsqServiceProvider extends ServiceProvider
         $this->app->singleton('nsq', function ($app) {
             $config = $app->make('config')->get('nsq');
 
-            $stateStorage = app(IlluminateStateStorage::class);
+            $lookup = new Lookup\Nsqlookupd($config['nsqlookupd_addrs']);
 
-            return new CommandFactory(
-                $config,
-                new CircuitBreakerFactory($stateStorage),
-                new CommandMetricsFactory($stateStorage),
-                new RequestCache(),
-                new RequestLog()
-            );
+            return new nsqphp($lookup);
         });
     }
 
