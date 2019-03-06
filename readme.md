@@ -2,10 +2,6 @@
 
 PHP client for [NSQ](https://github.com/bitly/nsq).
 
-### Notice
-
-I cannot maintain this anymore - apologies for ignored PRs. If someone wants to take over I am happy to transfer ownership. Send me a message via @davegardnerisme.
-
 ### NSQ basics
 
 You can read all about NSQ via the [readme on Github](https://github.com/bitly/nsq),
@@ -43,14 +39,14 @@ following to your composer.json.
         ...
         "require": {
             ...
-            "davegardnerisme/nsqphp": "dev-master"
+            "per3evere/nsqphp": "dev-master"
         }
         ...
     }
 
 You can also simply clone it into your project:
 
-    git clone git://github.com/davegardnerisme/nsqphp.git
+    git clone git://github.com/persevereVon/nsqphp.git
     cd nsqphp
     git submodule update --init --recursive
 
@@ -161,7 +157,7 @@ Interface:
 ### Publishing
 
 The client supports publishing to N `nsqd` servers, which must be specified
-explicitly by hostname. Unlike with subscription, there is no facility to 
+explicitly by hostname. Unlike with subscription, there is no facility to
 lookup the hostnames via `nslookupd` (and we probably wouldn't want to anyway
 for speed).
 
@@ -274,8 +270,8 @@ The client currently ships with one; a fixed delay strategy:
 ### De-duplication on subscribe
 
 Recall that to achieve HA we simply duplicate on publish into
-two different `nsqd` servers. To perform de-duplication we simply need to 
-supply an object that implements `nsqphp\Dedupe\DedupeInterface`. 
+two different `nsqd` servers. To perform de-duplication we simply need to
+supply an object that implements `nsqphp\Dedupe\DedupeInterface`.
 
     public function containsAndAdd($topic, $channel, MessageInterface $msg);
 
