@@ -44,8 +44,12 @@ class NsqServiceProvider extends ServiceProvider
             $config = $app->make('config')->get('nsq');
 
             $lookup = new Lookup\Nsqlookupd($config['nsqlookupd_addrs']);
+            $nsq = new nsqphp($lookup);
 
-            return new nsqphp($lookup);
+            // 发送到默认 nsqd 服务器
+            $nsq->publishTo($config['nsqd_addrs']);
+
+            return $nsq;
         });
     }
 

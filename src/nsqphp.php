@@ -170,12 +170,6 @@ class nsqphp
         $parts = explode('.', $hn);
         $this->shortId = $parts[0];
         $this->longId = $hn;
-
-        $this->loop->addPeriodicTimer(3, function () {
-            $memory = memory_get_usage() / 1024;
-            $formatted = number_format($memory, 3).'K';
-            echo "Current memory usage: {$formatted}\n";
-        });
     }
 
     /**
