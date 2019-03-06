@@ -164,18 +164,18 @@ for speed).
 Minimal approach:
 
 ```php
-    $nsq = new nsqphp\nsqphp;
+    $nsq = new Per3evere\Nsq\nsqphp;
     $nsq->publishTo('localhost')
-        ->publish('mytopic', new nsqphp\Message\Message('some message payload'));
+        ->publish('mytopic', new Per3evere\Nsq\Message\Message('some message payload'));
 ```
 It's up to you to decide if/how to encode your payload (eg: JSON).
 
 HA publishing:
 
 ```php
-    $nsq = new nsqphp\nsqphp;
-    $nsq->publishTo(array('nsq1', 'nsq2', 'nsq3'), nsqphp\nsqphp::PUB_QUORUM)
-        ->publish('mytopic', new nsqphp\Message\Message('some message payload'));
+    $nsq = new Per3evere\Nsq\nsqphp;
+    $nsq->publishTo(array('nsq1', 'nsq2', 'nsq3'), Per3evere\Nsq\nsqphp::PUB_QUORUM)
+        ->publish('mytopic', new Per3evere\Nsq\Message\Message('some message payload'));
 ```
 
 We will require a quorum of the `publishTo` nsqd daemons to respond to consider
@@ -196,16 +196,16 @@ to know where to find messages.
 So when subscribing, the first thing we need to do is initialise our
 lookup service object:
 ```php
-    $lookup = new nsqphp\Lookup\Nsqlookupd;
+    $lookup = new Per3evere\Nsq\Lookup\Nsqlookupd;
 ```
 Or alternatively:
 ```php
-    $lookup = new nsqphp\Lookup\Nsqlookupd('nsq1,nsq2');
+    $lookup = new Per3evere\Nsq\Lookup\Nsqlookupd('nsq1,nsq2');
 ```
 We can then use this to subscribe:
 ```php
-    $lookup = new nsqphp\Lookup\Nsqlookupd;
-    $nsq = new nsqphp\nsqphp($lookup);
+    $lookup = new Per3evere\Nsq\Lookup\Nsqlookupd;
+    $nsq = new Per3evere\Nsq\nsqphp($lookup);
     $nsq->subscribe('mytopic', 'somechannel', function($msg) {
         echo $msg->getId() . "\n";
         })->run();
@@ -215,8 +215,8 @@ not be retried using these settings - read on to find out more.**
 
 Or a bit more in the style of PHP (?):
 ```php
-    $lookup = new nsqphp\Lookup\Nsqlookupd;
-    $nsq = new nsqphp\nsqphp($lookup);
+    $lookup = new Per3evere\Nsq\Lookup\Nsqlookupd;
+    $nsq = new Per3evere\Nsq\nsqphp($lookup);
     $nsq->subscribe('mytopic', 'somechannel', 'msgCallback')
         ->run();
 
@@ -229,8 +229,8 @@ Or a bit more in the style of PHP (?):
 We can also subscribe to more than one channel/stream:
 
 ```php
-    $lookup = new nsqphp\Lookup\Nsqlookup;
-    $nsq = new nsqphp\nsqphp($lookup);
+    $lookup = new Per3evere\Nsq\Lookup\Nsqlookup;
+    $nsq = new Per3evere\Nsq\nsqphp($lookup);
     $nsq->subscribe('mytopic', 'somechannel', 'msgCallback')
         ->subscribe('othertopic', 'somechannel', 'msgCallback')
         ->run();
@@ -243,7 +243,7 @@ callback and then either (a) retry, or (b) discard the messages. Usually you
 won't want to discard the messages.
 
 To fix this, we need a **requeue strategy** - this is in the form of any
-object that implements `nsqphp\RequeueStrategy\RequeueStrategyInterface`:
+object that implements `Per3evere\Nsq\RequeueStrategy\RequeueStrategyInterface`:
 
 ```php
     public function shouldRequeue(MessageInterface $msg);
@@ -252,9 +252,9 @@ object that implements `nsqphp\RequeueStrategy\RequeueStrategyInterface`:
 The client currently ships with one; a fixed delay strategy:
 
 ```php
-    $requeueStrategy = new nsqphp\RequeueStrategy\FixedDelay;
-    $lookup = new nsqphp\Lookup\Nsqlookupd;
-    $nsq = new nsqphp\nsqphp($lookup, NULL, $requeueStrategy);
+    $requeueStrategy = new Per3evere\Nsq\RequeueStrategy\FixedDelay;
+    $lookup = new Per3evere\Nsq\Lookup\Nsqlookupd;
+    $nsq = new Per3evere\Nsq\nsqphp($lookup, NULL, $requeueStrategy);
     $nsq->subscribe('mytopic', 'somechannel', 'msgCallback')
         ->run();
 
@@ -271,7 +271,7 @@ The client currently ships with one; a fixed delay strategy:
 
 Recall that to achieve HA we simply duplicate on publish into
 two different `nsqd` servers. To perform de-duplication we simply need to
-supply an object that implements `nsqphp\Dedupe\DedupeInterface`.
+supply an object that implements `Per3evere\Nsq\Dedupe\DedupeInterface`.
 
     public function containsAndAdd($topic, $channel, MessageInterface $msg);
 
@@ -284,10 +284,10 @@ structure between many processes.
 We can use this thus:
 
 ```php
-    $requeueStrategy = new nsqphp\RequeueStrategy\FixedDelay;
-    $dedupe = new nsqphp\Dedupe\OppositeOfBloomFilterMemcached;
-    $lookup = new nsqphp\Lookup\Nsqlookupd;
-    $nsq = new nsqphp\nsqphp($lookup, $dedupe, $requeueStrategy);
+    $requeueStrategy = new Per3evere\Nsq\RequeueStrategy\FixedDelay;
+    $dedupe = new Per3evere\Nsq\Dedupe\OppositeOfBloomFilterMemcached;
+    $lookup = new Per3evere\Nsq\Lookup\Nsqlookupd;
+    $nsq = new Per3evere\Nsq\nsqphp($lookup, $dedupe, $requeueStrategy);
     $nsq->subscribe('mytopic', 'somechannel', 'msgCallback')
         ->run();
 
@@ -319,7 +319,7 @@ however it's worth keeping the following in mind:
 ### Logging
 
 The final optional dependency is a logger, in the form of some object that
-implements `nsqphp\Logger\LoggerInterface` (there is no standard logger
+implements `Per3evere\Nsq\Logger\LoggerInterface` (there is no standard logger
 interface shipped with PHP to the best of my knowledge):
 
 ```php
@@ -334,11 +334,11 @@ Putting all of this together we'd have something similar to the `test-sub.php`
 file:
 
 ```php
-    $requeueStrategy = new nsqphp\RequeueStrategy\FixedDelay;
-    $dedupe = new nsqphp\Dedupe\OppositeOfBloomFilterMemcached;
-    $lookup = new nsqphp\Lookup\Nsqlookupd;
-    $logger = new nsqphp\Logger\Stderr;
-    $nsq = new nsqphp\nsqphp($lookup, $dedupe, $requeueStrategy, logger);
+    $requeueStrategy = new Per3evere\Nsq\RequeueStrategy\FixedDelay;
+    $dedupe = new Per3evere\Nsq\Dedupe\OppositeOfBloomFilterMemcached;
+    $lookup = new Per3evere\Nsq\Lookup\Nsqlookupd;
+    $logger = new Per3evere\Nsq\Logger\Stderr;
+    $nsq = new Per3evere\Nsq\nsqphp($lookup, $dedupe, $requeueStrategy, logger);
     $nsq->subscribe('mytopic', 'somechannel', 'msgCallback')
         ->run();
 
