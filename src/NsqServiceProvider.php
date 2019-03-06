@@ -5,6 +5,7 @@ namespace Per3evere\Nsq;
 use Illuminate\Foundation\Application as LaravelApplication;
 use Laravel\Lumen\Application as LumenApplication;
 use Illuminate\Support\ServiceProvider;
+use Per3evere\Nsq\Console\NsqCommand;
 
 class NsqServiceProvider extends ServiceProvider
 {
@@ -16,7 +17,7 @@ class NsqServiceProvider extends ServiceProvider
     protected $defer = true;
 
     /**
-     * Bootstrap the configuration
+     * Bootstrap the nsq services.
      *
      * @return void
      */
@@ -31,6 +32,13 @@ class NsqServiceProvider extends ServiceProvider
         }
 
         $this->mergeConfigFrom($source, 'nsq');
+
+        // 注册命令
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                NsqCommand::class
+            ]);
+        }
     }
 
     /**

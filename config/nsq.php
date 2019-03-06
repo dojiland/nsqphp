@@ -21,4 +21,17 @@ return [
     |
     */
     'nsqd_addrs' => explode(',', env('NSQDS', 'localhost:4150')),
+
+    /*
+    |--------------------------------------------------------------------------
+    | 订阅类列表
+    |--------------------------------------------------------------------------
+    |
+    | 所有需要启动的订阅类，需继承 Per3evere\Nsq\Subscribe 抽象类
+    |
+    */
+    'subscribes' => [
+        App\Api\V1\Subscribes\SubscribeA::class,
+        App\Api\V1\Subscribes\SubscribeB::class,
+    ],
 ];
