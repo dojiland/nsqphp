@@ -1,10 +1,12 @@
 # NSQPHP
 
-PHP client for [NSQ](https://github.com/bitly/nsq).
+PHP client for [NSQ](https://github.com/nsqio/nsq).
+
+该客户端针对 Laravel 框架做了一些事情。
 
 ### NSQ basics
 
-You can read all about NSQ via the [readme on Github](https://github.com/bitly/nsq),
+You can read all about NSQ via the [readme on Github](https://github.com/nsqio/nsq),
 or via the [Bitly blog post](http://word.bitly.com/post/33232969144/nsq)
 describing it. More details on nsqd, nsqlookupd are provided within
 each folder within the project.
@@ -47,17 +49,13 @@ following to your composer.json.
 You can also simply clone it into your project:
 
     git clone git://github.com/persevereVon/nsqphp.git
-    cd nsqphp
-    git submodule update --init --recursive
 
-To use `nsqphp` in your projects, just include the `bootstrap.php` file, or
-setup autoloading via composer. The design lends itself to a dependency injection
-container (all dependencies are constructor injected), although you can just
+To use `nsqphp` in your projects, just setup autoloading via composer. The design lends itself to a dependency injection container (all dependencies are constructor injected), although you can just
 setup the dependencies manually when you use it.
 
 ### Testing it out
 
-Follow the [getting started guide](https://github.com/bitly/nsq#getting-started)
+Follow the [getting started guide](https://nsq.io/overview/quick_start.html)
 to install nsq on localhost.
 
 Publish some events:
@@ -144,7 +142,7 @@ This time you should receive **only 10 messages**.
 
 ### Messages
 
-Messages are encapsulated by the nsqphp\Message\Message class and are referred
+Messages are encapsulated by the Per3evere\Nsq\Message\Message class and are referred
 to by interface within the code (so you could implement your own).
 
 Interface:
@@ -164,9 +162,13 @@ for speed).
 Minimal approach:
 
 ```php
+    // 原生的方式
     $nsq = new Per3evere\Nsq\nsqphp;
     $nsq->publishTo('localhost')
         ->publish('mytopic', new Per3evere\Nsq\Message\Message('some message payload'));
+
+    // Laravel 方式
+    app('nsq')->publish('mytopic', new Per3evere\Nsq\Message\Message('some message payload'));
 ```
 It's up to you to decide if/how to encode your payload (eg: JSON).
 
@@ -236,7 +238,111 @@ We can also subscribe to more than one channel/stream:
         ->run();
 ```
 
+### Laravel 方式订阅
+
+由于订阅处理可能有很多，但是放到一个文件不是很合理。我们可以建立一个代码目录存放订阅类，该订阅类继承 `Per3evere\Nsq\Subscribe`，`topic` 属性对应订阅的主题，`channel` 属性对应订阅的频道，`callback` 方法对应回调方法。
+
+比如现在有两个订阅需求 `SubscribeA`，`SubscribeB`，首先建立这两个文件:
+
+`app/Api/V1/Subscribes/SubscribeA.php`:
+
+```php
+<?php
+
+namespace App\Api\V1\Subscribes;
+
+use Per3evere\Nsq\Subscribe;
+use Per3evere\Nsq\Message\Message;
+
+class SubscribeA extends Subscribe
+{
+    /**
+     * 订阅的主题.
+     *
+     * @var string
+     */
+    protected $topic = 'test';
+
+    /**
+     * 订阅的频道.
+     *
+     * @var string
+     */
+    protected $channel = 'ch';
+
+    /**
+     * 监听消息回调处理
+     *
+     * @return void
+     */
+    public function callback(Message $msg)
+    {
+        var_dump($msg);
+    }
+}
+```
+
+`app/Api/V1/Subscribes/SubscribeB.php`:
+
+```php
+<?php
+
+namespace App\Api\V1\Subscribes;
+
+use Per3evere\Nsq\Subscribe;
+use Per3evere\Nsq\Message\Message;
+
+class SubscribeB extends Subscribe
+{
+    /**
+     * 订阅的主题.
+     *
+     * @var string
+     */
+    protected $topic = 'test';
+
+    /**
+     * 订阅的频道.
+     *
+     * @var string
+     */
+    protected $channel = 'ch';
+
+    /**
+     * 监听消息回调处理
+     *
+     * @return void
+     */
+    public function callback(Message $msg)
+    {
+        var_dump($msg);
+    }
+}
+```
+
+然后需要在 `nsq.php` 配置文件中填写配置项：
+
+```php
+    /*
+    |--------------------------------------------------------------------------
+    | 订阅类列表
+    |--------------------------------------------------------------------------
+    |
+    | 所有需要启动的订阅类，需继承 Per3evere\Nsq\Subscribe 抽象类
+    |
+    */
+    'subscribes' => [
+        App\Api\V1\Subscribes\SubscribeA::class,
+        App\Api\V1\Subscribes\SubscribeB::class,
+    ],
+```
+
+最后直接执行 `php artisan nsq`，监听程序就开始正常执行了。
+
+
 ### Retrying failed messages
+
+默认采取 `Per3evere\Nsq\RequeueStrategy\FixedDelay` 策略，最多尝试 5 次，每次延迟 2 秒。
 
 The PHP client will catch any thrown Exceptions that happen within the
 callback and then either (a) retry, or (b) discard the messages. Usually you
@@ -273,7 +379,9 @@ Recall that to achieve HA we simply duplicate on publish into
 two different `nsqd` servers. To perform de-duplication we simply need to
 supply an object that implements `Per3evere\Nsq\Dedupe\DedupeInterface`.
 
+```php
     public function containsAndAdd($topic, $channel, MessageInterface $msg);
+```
 
 The PHP client ships with two mechanisms for de-duplicating messages on subscribe.
 Both are based around [the opposite of a bloom filter](http://www.davegardner.me.uk/blog/2012/11/06/stream-de-duplication/).

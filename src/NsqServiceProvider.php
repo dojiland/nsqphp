@@ -52,7 +52,10 @@ class NsqServiceProvider extends ServiceProvider
             $config = $app->make('config')->get('nsq');
 
             $lookup = new Lookup\Nsqlookupd($config['nsqlookupd_addrs']);
-            $nsq = new nsqphp($lookup);
+            // 默认重排策略为最多尝试 5 次，每次延迟 2 秒
+            $requeueStrategy = new RequeueStrategy\FixedDelay(5, 2000);
+
+            $nsq = new nsqphp($lookup, NULL, $requeueStrategy);
 
             // 发送到默认 nsqd 服务器
             $nsq->publishTo($config['nsqd_addrs']);
