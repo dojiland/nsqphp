@@ -31,7 +31,7 @@ return [
     |
     */
     'subscribes' => [
-        App\Api\V1\Subscribes\SubscribeA::class,
-        App\Api\V1\Subscribes\SubscribeB::class,
+        // App\Api\V1\Subscribes\SubscribeA::class,
+        // App\Api\V1\Subscribes\SubscribeB::class,
     ],
 ];
