@@ -39,7 +39,13 @@ class ConnectionPool implements \Iterator, \Countable
      */
     public function hasConnection(ConnectionInterface $connection)
     {
-        return $this->find($connection->getSocket()) ? TRUE : FALSE;
+        foreach ($this->connections as $conn) {
+            if ((string)$conn == (string)$connection) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

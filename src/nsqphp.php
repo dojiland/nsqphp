@@ -361,36 +361,47 @@ class nsqphp
         // we need to instantiate a new connection for every nsqd that we need
         // to fetch messages from for this topic/channel
 
-        $hosts = $this->nsLookup->lookupHosts($topic);
-        if ($this->logger) {
-            $this->logger->debug("Found the following hosts for topic \"$topic\": " . implode(',', $hosts));
-        }
+        $this->loop->addPeriodicTimer(5, function () use ($topic, $channel, $callback) {
+            if ($this->logger) {
+                $this->logger->info("Querying nsqlookupd for nsqd.");
+            }
 
-        foreach ($hosts as $host) {
-            $parts = explode(':', $host);
-            $conn = new Connection\Connection(
+            $hosts = $this->nsLookup->lookupHosts($topic);
+            if ($this->logger) {
+                $this->logger->debug("Found the following hosts for topic \"$topic\": " . implode(',', $hosts));
+            }
+
+            foreach ($hosts as $host) {
+                $parts = explode(':', $host);
+                $conn = new Connection\Connection(
                     $parts[0],
                     isset($parts[1]) ? $parts[1] : NULL,
                     $this->connectionTimeout,
                     $this->readWriteTimeout,
                     $this->readWaitTimeout,
                     TRUE    // non-blocking
-                    );
-            if ($this->logger) {
-                $this->logger->info("Connecting to {$host} and saying hello");
-            }
-            $conn->write($this->writer->magic());
-            $this->subConnectionPool->add($conn);
-            $socket = $conn->getSocket();
-            $nsq = $this;
-            $this->loop->addReadStream($socket, function ($socket) use ($nsq, $callback, $topic, $channel) {
-                $nsq->readAndDispatchMessage($socket, $topic, $channel, $callback);
-            });
+                );
 
-            // subscribe
-            $conn->write($this->writer->subscribe($topic, $channel, $this->shortId, $this->longId));
-            $conn->write($this->writer->ready(1));
-        }
+                if ($this->subConnectionPool->hasConnection($conn)) {
+                    return;
+                }
+
+                if ($this->logger) {
+                    $this->logger->info("Connecting to {$host} and saying hello");
+                }
+                $conn->write($this->writer->magic());
+                $this->subConnectionPool->add($conn);
+                $socket = $conn->getSocket();
+                $nsq = $this;
+                $this->loop->addReadStream($socket, function ($socket) use ($nsq, $callback, $topic, $channel) {
+                    $nsq->readAndDispatchMessage($socket, $topic, $channel, $callback);
+                });
+
+                // subscribe
+                $conn->write($this->writer->subscribe($topic, $channel, $this->shortId, $this->longId));
+                $conn->write($this->writer->ready(1));
+            }
+        });
 
         return $this;
     }
