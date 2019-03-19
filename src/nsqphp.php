@@ -362,10 +362,6 @@ class nsqphp
         // to fetch messages from for this topic/channel
 
         $this->loop->addPeriodicTimer(5, function () use ($topic, $channel, $callback) {
-            if ($this->logger) {
-                $this->logger->info("Querying nsqlookupd for nsqd.");
-            }
-
             $hosts = $this->nsLookup->lookupHosts($topic);
             if ($this->logger) {
                 $this->logger->debug("Found the following hosts for topic \"$topic\": " . implode(',', $hosts));
