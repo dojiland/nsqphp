@@ -361,7 +361,7 @@ class nsqphp
         // we need to instantiate a new connection for every nsqd that we need
         // to fetch messages from for this topic/channel
 
-        $this->loop->addPeriodicTimer(5, function () use ($topic, $channel, $callback) {
+        $lookupAndListen = function () use ($topic, $channel, $callback) {
             $hosts = $this->nsLookup->lookupHosts($topic);
             if ($this->logger) {
                 $this->logger->debug("Found the following hosts for topic \"$topic\": " . implode(',', $hosts));
@@ -397,7 +397,11 @@ class nsqphp
                 $conn->write($this->writer->subscribe($topic, $channel, $this->shortId, $this->longId));
                 $conn->write($this->writer->ready(1));
             }
-        });
+        };
+
+        $lookupAndListen();
+
+        $this->loop->addPeriodicTimer(60, $lookupAndListen);
 
         return $this;
     }
