@@ -85,6 +85,20 @@ class Connection implements ConnectionInterface
     private $socket = NULL;
 
     /**
+     * Subscribe topic name
+     *
+     * @var string
+     */
+    private $topic;
+
+    /**
+     * Subscribe channel name
+     *
+     * @var string
+     */
+    private $channel;
+
+    /**
      * Constructor
      *
      * @param string $hostname Default localhost
@@ -231,6 +245,52 @@ class Connection implements ConnectionInterface
             }
         }
         return $this->socket;
+    }
+
+    /**
+     * Set topic name
+     *
+     * @var string $topic Topic name
+     * @return Connection This instance of call chaining
+     */
+    public function setTopic(string $topic)
+    {
+        $this->topic = $topic;
+
+        return $this;
+    }
+
+    /**
+     * Set channel name
+     *
+     * @var string $channel Channel name
+     * @return Connection This instance of call chaining
+     */
+    public function setChannel(string $channel)
+    {
+        $this->channel = $channel;
+
+        return $this;
+    }
+
+    /**
+     * Get topic name
+     *
+     * @return string
+     */
+    public function getTopic()
+    {
+        return $this->topic;
+    }
+
+    /**
+     * Get channel name
+     *
+     * @return string
+     */
+    public function getChannel()
+    {
+        return $this->channel;
     }
 
     /**

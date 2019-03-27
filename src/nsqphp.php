@@ -378,6 +378,8 @@ class nsqphp
                     TRUE    // non-blocking
                 );
 
+                $conn->setTopic($topic)->setChannel($channel);
+
                 if ($this->subConnectionPool->hasConnection($conn)) {
                     return;
                 }

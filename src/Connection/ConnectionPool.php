@@ -40,7 +40,9 @@ class ConnectionPool implements \Iterator, \Countable
     public function hasConnection(ConnectionInterface $connection)
     {
         foreach ($this->connections as $conn) {
-            if ((string)$conn == (string)$connection) {
+            if ((string)$conn == (string)$connection &&
+                $conn->getTopic() == $connection->getTopic() &&
+                $conn->getChannel() == $connection->getChannel()) {
                 return true;
             }
         }
