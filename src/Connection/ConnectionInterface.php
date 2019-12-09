@@ -42,4 +42,11 @@ interface ConnectionInterface
      * @return Resource The socket, after reconnecting
      */
     public function reconnect();
+
+    /**
+     * Close socket handle.
+     *
+     * @return boolean
+     */
+    public function close();
 }

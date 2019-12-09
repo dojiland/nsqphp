@@ -302,4 +302,17 @@ class Connection implements ConnectionInterface
     {
         return "{$this->hostname}:{$this->port}";
     }
+
+    /**
+     * Close socket handle
+     *
+     * @return boolean
+     */
+    public function close()
+    {
+        if ($this->socket !== NULL) {
+            return @fclose($this->socket);
+        }
+        return FALSE;
+    }
 }
