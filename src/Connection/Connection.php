@@ -159,7 +159,8 @@ class Connection implements ConnectionInterface
         $null = NULL;
         $read = array($socket = $this->getSocket());
         $buffer = $data = '';
-        while (strlen($data) < $len) {
+        $totalBytes = $len;
+        while (strlen($data) < $totalBytes) {
             $readable = stream_select($read, $null, $null, $this->readWriteTimeoutSec, $this->readWriteTimeoutUsec);
             if ($readable > 0) {
                 $buffer = @stream_socket_recvfrom($socket, $len);
