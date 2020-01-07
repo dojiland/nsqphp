@@ -297,8 +297,6 @@ class nsqphp
                 }, $conn, 2);
             } catch (\Exception $e) {
                 $errors[] = $e->getMessage();
-            } finally {
-                $conn->close();
             }
             if ($success >= $this->pubSuccessCount) {
                 break;
@@ -323,6 +321,7 @@ class nsqphp
                 return;
             } catch (\Exception $e) {
                 $lastException = $e;
+            } finally {
                 $conn->reconnect();
             }
         }
